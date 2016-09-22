@@ -23,4 +23,21 @@ teamController.get = (req, res) => {
     });
 };
 
+teamController.post = (req, res) => {
+    mongo.connect(url, (err, db) => {
+        // Make sure that there are no errors
+        assert.equal(null, err, "There was an error connecting to the database.");
+
+        const team = {
+            name: "name",
+            members: "members"
+        };
+
+        db.collection('team').insert(team);
+        db.close();
+
+        res.status(200).send('it worked!');
+    });
+};
+
 module.exports = teamController;

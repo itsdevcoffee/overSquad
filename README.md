@@ -1,2 +1,2 @@
-# react-express-boilerplate
-React / Express boilerplate with React Router, Sass, ES2015 on client and server-side configured.
+# OverSquad
+Create a team with your friends and discover the best match ups again your enemies.

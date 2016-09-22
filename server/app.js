@@ -9,6 +9,7 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import config from '../webpack.config.js';
 
 import customersController from './controllers/customersController.js';
+import teamController from './controllers/teamController.js';
 
 const compiler = webpack(config);
 const middleware = webpackMiddleware(compiler, {
@@ -30,6 +31,7 @@ app.use(bodyParser.json());
 
 // Api Calls
 app.get('/api/customers', customersController.get);
+app.get('/api/team', teamController.get);
 
 app.use(middleware);
 app.use(webpackHotMiddleware(compiler));

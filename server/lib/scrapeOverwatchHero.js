@@ -15,8 +15,8 @@ let scrapeOverwatchHero = (herosArray) => {
 		finishedHeroArray = [];
 		hasEmptyAbilities = false;
 
-		// Uncomment for testing purposes
-		herosArray = herosArray.slice(1, 2);
+		
+		herosArray = herosArray.slice(1, 2); // Uncomment for testing purposes
 
 		// Loop through all heros and get abilities
 		async.eachSeries(herosArray, (hero, callback) => {
@@ -70,7 +70,8 @@ let scrapeOverwatchHero = (herosArray) => {
 
 								$(this).find('td').each(function(i, element) {
 									if(i === 0) {
-										statTitle = $(this).text();
+										// Added regex to get rid of any special characters
+										statTitle = $(this).text().replace(/[^a-zA-Z0-9 ]/g, "");
 									} else {
 										statDesc = $(this).text();
 									}
@@ -106,6 +107,68 @@ let scrapeOverwatchHero = (herosArray) => {
 						});
 					});
 
+					// Get hero achievements
+					hero.achievements = [];
+					$('.wikitable').each(function(i, element) {
+						let targetChildren = $(this).find('tr');
+
+						targetChildren.each(function(i, element) {
+							let achievementObj = {};
+
+							// Get achievement name
+							achievementObj.name = $(this).find('i').text();
+
+							// Get achievement description
+							$(this).find('td').each(function(i, element) {
+								if(i === 2) {
+									achievementObj.desc = $(this).text();
+								}
+							});
+
+							// Get achievement icon and reward
+							$(this).find('img').each(function(i, element) {
+								if(i === 0) {
+									achievementObj.icon = $(this)['0'].attribs.src;
+								} else {
+									achievementObj.reward = $(this)['0'].attribs.src;
+								}
+							});
+
+							// Push object into achievements array and make sure it isn't first tr
+							if(i > 0) {
+								hero.achievements.push(achievementObj);
+							}
+
+						});
+					})
+
+					// Get hero skins
+					hero.skins = [];
+					let skinCategoryObj;
+					$('#mw-content-text .mw-collapsible').eq(6).children().each(function(i, element) {
+						i += 1;
+						// even number is categoryName and odd is skins
+						if(i !== 1 && i % 2 === 0) {
+							skinCategoryObj = {
+								name: $(this).find('b').text(),
+								skinsCollection: []
+							}
+						} else {
+							// Loop through the skins and get img and name
+							$(this).find('td').each(function(i, element) {
+								if($(this).get(0).attribs.style) {
+									skinCategoryObj.skinsCollection.push({
+										skinName: $(this).find('b').text(),
+										skinImg: $(this).find('img').get(0).attribs.src
+									});
+								}
+							});
+
+							// Add it to array
+							hero.skins.push(skinCategoryObj);
+						}
+					});
+
 					// Get full hero image
 					let fullImageSelector = $('#mw-content-text .infoboxtable').children().find('img')['0'];
 
@@ -113,7 +176,7 @@ let scrapeOverwatchHero = (herosArray) => {
 						hero.fullHeroImage = fullImageSelector.attribs.src;
 					}
 
-					if(hero.abilities.length == 0) {
+					if(Object.keys(hero.abilities).length === 0) {
 						console.log(chalk.bgRed.white.bold(`${hero.heroName} is empty`));
 						hasEmptyAbilities = true;
 					}

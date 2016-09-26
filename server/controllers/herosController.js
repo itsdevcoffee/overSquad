@@ -17,6 +17,7 @@ herosController.get = (req, res) => {
         // Make sure that there are no errors
         assert.equal(null, err, "There was an error connecting to the database.");
         let cursor = db.collection('heros').find().sort({heroName: 1});
+        console.log(cursor.length);
         cursor.forEach((hero) => {
             results.push(hero);
         }, () => {
@@ -33,12 +34,15 @@ herosController.updateHeros = (req, res) => {
         .then((finishedHeroArray) => {
             mongo.connect(url, (err, db) => {
                 assert.equal(null, err, "There was an error connecting to the database.");
+
                 console.log(chalk.white.bgCyan.bold('Removing previous hero data...'));
                 db.collection('heros').remove({});
+
                 console.log(chalk.bgGreen.white.bold('Saving new hero data...'));
                 finishedHeroArray.forEach((hero) => {
                     db.collection('heros').insert(hero);
-                })
+                });
+
                 db.close();
             });
             res.json(finishedHeroArray);

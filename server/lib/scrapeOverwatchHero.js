@@ -4,6 +4,7 @@ import request from 'request';
 import cheerio from 'cheerio';
 import Promise from 'bluebird';
 import fs from 'fs';
+import _ from 'lodash';
 
 import async from 'async';
 let finishedHeroArray = [];
@@ -16,11 +17,11 @@ let scrapeOverwatchHero = (herosArray) => {
 		hasEmptyAbilities = false;
 
 		
-		herosArray = herosArray.slice(1, 2); // Uncomment for testing purposes
+		//herosArray = herosArray.slice(1, 2); // Uncomment for testing purposes
 
 		// Loop through all heros and get abilities
 		async.eachSeries(herosArray, (hero, callback) => {
-				request(hero.wikiUrl, (err, res, body) => {
+				request(hero.wikiUrl, async (err, res, body) => {
 					if(err) {
 						reject();
 					}
@@ -34,7 +35,7 @@ let scrapeOverwatchHero = (herosArray) => {
 					}
 
 					// Get hero abilities
-					$('.ability_details').each(function(i, element) {
+					await $('.ability_details').each(function(i, element) {
 						const targetAbility = $(this).find('tr');
 						const targetCollapsible = $(this).find('.mw-collapsible-content');
 						let currentAbility;
@@ -109,7 +110,7 @@ let scrapeOverwatchHero = (herosArray) => {
 
 					// Get hero achievements
 					hero.achievements = [];
-					$('.wikitable').each(function(i, element) {
+					await $('.wikitable').each(function(i, element) {
 						let targetChildren = $(this).find('tr');
 
 						targetChildren.each(function(i, element) {
@@ -143,10 +144,12 @@ let scrapeOverwatchHero = (herosArray) => {
 					})
 
 					// Get hero skins
+					console.log(chalk.white.bgCyan.bold(`Retrieving ${hero.heroName} skins...`));
 					hero.skins = [];
 					let skinCategoryObj;
-					$('#mw-content-text .mw-collapsible').eq(6).children().each(function(i, element) {
+					$('#mw-content-text table.mw-collapsible').eq(0).children().each(function(i, element) {
 						i += 1;
+
 						// even number is categoryName and odd is skins
 						if(i !== 1 && i % 2 === 0) {
 							skinCategoryObj = {
@@ -159,13 +162,148 @@ let scrapeOverwatchHero = (herosArray) => {
 								if($(this).get(0).attribs.style) {
 									skinCategoryObj.skinsCollection.push({
 										skinName: $(this).find('b').text(),
-										skinImg: $(this).find('img').get(0).attribs.src
+										skinThumbImg: $(this).find('img').get(0).attribs.src,
+										skinFullImg: $(this).find('img').get(0).attribs.src.replace('100px', '600px')
 									});
 								}
 							});
 
-							// Add it to array
-							hero.skins.push(skinCategoryObj);
+							// Add it to array and make sure skinCategory isn't null
+							if(skinCategoryObj) {
+								hero.skins.push(skinCategoryObj);
+							}
+						}
+					});
+
+					// Get victory poses
+					hero.victoryPoses = [];
+					let victoryPoseObj;
+					$('#mw-content-text table.mw-collapsible').eq(1).children().each(function(i, element) {
+						i += 1;
+	
+						if(i !== 1 && i % 2 === 0) {
+							victoryPoseObj = {
+								name: $(this).find('b').text(),
+								victoryPoseCollection: []
+							};
+						} else {
+							// Loop through the victory posts and get img and name
+							$(this).find('td').each(function(i, element) {
+								if($(this).get(0).attribs.style) {
+									victoryPoseObj.victoryPoseCollection.push({
+										victoryName: $(this).find('b').text(),
+										victoryThumbImg: $(this).find('img').get(0).attribs.src,
+										victoryFullImg: $(this).find('img').get(0).attribs.src.replace('100px', '600px')
+									});
+								}
+							});
+
+							// Add it to array and make sure victoryPoseCollection isn't null
+							if(victoryPoseObj) {
+								hero.victoryPoses.push(victoryPoseObj);
+							}
+						}
+					});
+
+					// Get hero sprays
+					hero.sprays = [];
+					let sprayObj;
+					let sprayDomTrs = $('#mw-content-text table.mw-collapsible').eq(2).children();
+					$('#mw-content-text table.mw-collapsible').eq(2).children().each(function(i, element) {
+						let parentIndex = i += 1;
+
+						let sprayCategory = $(this).find('th').find('b').text();
+
+						if(parentIndex !== 1 && sprayCategory !== "") {
+							if(sprayObj) {
+								hero.sprays.push(sprayObj);
+							}
+							sprayObj = {
+								name: sprayCategory,
+								sprayCollection: []
+							};
+						} else {
+							$(this).find('td').each(function(i, element) {
+								if($(this).get(0).attribs.style) {
+									let imgUrl = $(this).find('img').get(0).attribs.src;
+
+									sprayObj.sprayCollection.push({
+										sprayName: $(this).find('b').text(),
+										sprayThumbImg: imgUrl,
+										sprayFullImg: imgUrl.replace('/thumb', '').replace('/' + _.last(imgUrl.split('/')) ,'')
+									});
+
+									if(sprayDomTrs.length === parentIndex) {
+										hero.sprays.push(sprayObj);
+									}
+								}
+							});
+						}
+					});
+
+					// Get hero emotes
+					hero.emotes = [];
+					let emotesObj;
+					let emoteDomTrs = $('#mw-content-text table.mw-collapsible').eq(3).children();
+					emoteDomTrs.each(function(i, element) {
+						let parentIndex = i += 1;
+
+						let emoteCategory = $(this).find('th').find('b').text();
+
+						if(parentIndex !== 1 && emoteCategory !== "") { 
+							if(emotesObj) {
+								hero.emotes.push(emotesObj);
+							}
+							emotesObj = {
+								name: emoteCategory,
+								emoteCollection: []
+							};
+						} else {
+							$(this).find('td').each(function(i, element) {
+								if($(this).get(0).attribs.style) {
+									emotesObj.emoteCollection.push({
+										emoteName: $(this).find('big').text(),
+										emoteVideo: $(this).find('video').get(0).attribs.src
+									});
+								}
+							});
+
+							if(emoteDomTrs.length === parentIndex) {
+								hero.emotes.push(emotesObj);
+							}
+						}
+					});
+
+					// Get hero highlight
+					hero.highlights = [];
+					let highlightObj;
+					let highLightDomTrs = $('#mw-content-text table.mw-collapsible').eq(4).children();
+					highLightDomTrs.each(function(i, element) {
+						let parentIndex = i += 1;
+
+						let highlightCategory = $(this).find('th').find('b').text();
+
+						if(parentIndex !== 1 && highlightCategory !== "") { 
+							if(highlightObj) {
+								hero.highlights.push(highlightObj);
+							}
+							highlightObj = {
+								name: highlightCategory,
+								highlightCollection: []
+							};
+						} else {
+							$(this).find('td').each(function(i, element) {
+								if($(this).get(0).attribs.style) {
+									highlightObj.highlightCollection.push({
+										highlightName: $(this).find('big').text(),
+										highlightVideo: $(this).find('video').get(0).attribs.src
+									});
+								}
+							});
+
+							if(highLightDomTrs.length === parentIndex) {
+								hero.highlights.push(highlightObj);
+							}
 						}
 					});
 
@@ -176,9 +314,12 @@ let scrapeOverwatchHero = (herosArray) => {
 						hero.fullHeroImage = fullImageSelector.attribs.src;
 					}
 
-					if(Object.keys(hero.abilities).length === 0) {
-						console.log(chalk.bgRed.white.bold(`${hero.heroName} is empty`));
+					// hero ability or skins are empty
+					if(Object.keys(hero.abilities).length === 0 || hero.skins.length === 0) {
 						hasEmptyAbilities = true;
+						console.log(chalk.bgRed.white.bold(`${hero.heroName} is empty`));
+						console.log(chalk.bgBlue.white.bold('Some hero abilities or skins were empty. Retrying...'));
+						reject();
 					}
 
 					finishedHeroArray.push(hero);
@@ -186,10 +327,6 @@ let scrapeOverwatchHero = (herosArray) => {
 				});
 			}
 			, function done() {
-				if(hasEmptyAbilities) {
-					console.log(chalk.bgBlue.white.bold('Some hero abilities were empty. Retrying...'));
-					reject();
-				}
 				resolve(finishedHeroArray);
 			});
 	});

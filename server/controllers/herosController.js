@@ -17,7 +17,6 @@ herosController.get = (req, res) => {
         // Make sure that there are no errors
         assert.equal(null, err, "There was an error connecting to the database.");
         let cursor = db.collection('heros').find().sort({heroName: 1});
-        console.log(cursor.length);
         cursor.forEach((hero) => {
             results.push(hero);
         }, () => {

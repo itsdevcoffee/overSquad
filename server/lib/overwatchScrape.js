@@ -54,7 +54,7 @@ let overwatchScrape = () => {
 			});
 
 			// Have to retry the method because sometimes abilities are just empty
-			retryPromise(scrapeOverwatchHero.bind(this, herosArray), { max_tries: 4 }).done((finishedHeroArray) => {
+			retryPromise(scrapeOverwatchHero.bind(this, herosArray), { max_tries: 8 }).done((finishedHeroArray) => {
 				fs.writeFile(path.join(__dirname + '/heros.json'), JSON.stringify(finishedHeroArray), (err) => {
 					console.log(chalk.bgGreen.white.bold('Created heros.json file.'));
 					if(err) {

@@ -17,7 +17,7 @@ let scrapeOverwatchHero = (herosArray) => {
 		hasEmptyAbilities = false;
 
 		
-		//herosArray = herosArray.slice(1, 2); // Uncomment for testing purposes
+		herosArray = herosArray.slice(1, 2); // Uncomment for testing purposes
 
 		// Loop through all heros and get abilities
 		async.eachSeries(herosArray, (hero, callback) => {

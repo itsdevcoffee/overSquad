@@ -55,13 +55,24 @@ let overwatchScrape = () => {
 
 			// Have to retry the method because sometimes abilities are just empty
 			retryPromise(scrapeOverwatchHero.bind(this, herosArray), { max_tries: 8 }).done((finishedHeroArray) => {
-				fs.writeFile(path.join(__dirname + '/heros.json'), JSON.stringify(finishedHeroArray), (err) => {
-					console.log(chalk.bgGreen.white.bold('Created heros.json file.'));
-					if(err) {
-						return reject();
-					}
-					return resolve(finishedHeroArray);
-				});
+				const createHeroJson = (finishedHeroArray) => {
+					fs.writeFile(path.join(__dirname + `/archive/heros${Date.now()}.json`), JSON.stringify(finishedHeroArray), (err) => {
+						if(err) {
+							return reject();
+						}
+						console.log(chalk.bgGreen.white.bold('Created heros.json file.'));
+						return resolve(finishedHeroArray);
+					});
+				}
+				// Create archive directory or use existing
+				if(!fs.existsSync(path.join(__dirname + `/archive`))) {
+					fs.mkdir(path.join(__dirname + `/archive`), () => {
+						createHeroJson(finishedHeroArray);
+					});
+				} else {
+					createHeroJson(finishedHeroArray);
+				}
+
 			});
 		});
 	});

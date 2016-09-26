@@ -16,7 +16,7 @@ let scrapeOverwatchHero = (herosArray) => {
 		hasEmptyAbilities = false;
 
 		// Uncomment for testing purposes
-		//herosArray = herosArray.slice(1, 2);
+		herosArray = herosArray.slice(1, 2);
 
 		// Loop through all heros and get abilities
 		async.eachSeries(herosArray, (hero, callback) => {
@@ -27,16 +27,16 @@ let scrapeOverwatchHero = (herosArray) => {
 					hero.abilities = {};
 
 					let $ = cheerio.load(body);
-					console.log(chalk.white.bgCyan.bold(`Retrieving ${hero.heroName}...`));
+					console.log(chalk.white.bgCyan.bold(`Retrieving ${hero.heroName} abilities...`));
+
+					if($('.external.text')['0']) {
+						hero.overpwnLink = $('.external.text')['0'].attribs.href;
+					}
 
 					// Get hero abilities
-					// $('.ability_details').find('img').each((i, element) => {
-					// 	hero.abilities.push(element.attribs.src);
-					// });
-
 					$('.ability_details').each(function(i, element) {
 						const targetAbility = $(this).find('tr');
-						let formatAbility = {};
+						const targetCollapsible = $(this).find('.mw-collapsible-content');
 						let currentAbility;
 
 						targetAbility.each(function(i, element) {
@@ -50,7 +50,7 @@ let scrapeOverwatchHero = (herosArray) => {
 
 							// Get ability desc
 							targetChildren.find('.header2').each(function(i, element) {
-								hero.abilities[currentAbility].abilityDesc = $(this).text();
+								hero.abilities[currentAbility].nameDesc = $(this).text();
 							});
 
 							// Get ability img
@@ -81,13 +81,31 @@ let scrapeOverwatchHero = (herosArray) => {
 
 							// Get offical description
 							targetChildren.find('i').each(function(i, element) {
-								console.log($(this).text());
+								hero.abilities[currentAbility].abilityDesc = $(this).text();
+							});
+
+							// Get behavior
+							targetChildren.last().find('p').last().each(function(i, element) {
+								if(!$(this)['0'].attribs.class) {
+									hero.abilities[currentAbility].behavior =  $(this).text();
+								}
+							});
+
+							// Get ability video
+							targetCollapsible.find('iframe').each(function(i, element) {
+								hero.abilities[currentAbility].video = $(this)['0'].attribs.src;
+							});
+
+							// Get ability details
+							hero.abilities[currentAbility].details = [];
+
+							targetCollapsible.find('li').each(function(i, element) {
+								hero.abilities[currentAbility].details.push($(this).text());
 							});
 
 						});
 					});
 
-					console.log(hero.abilities);
 					// Get full hero image
 					let fullImageSelector = $('#mw-content-text .infoboxtable').children().find('img')['0'];
 

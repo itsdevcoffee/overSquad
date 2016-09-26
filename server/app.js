@@ -33,9 +33,8 @@ app.use(bodyParser.json());
 // Api Calls
 app.get('/api/customers', customersController.get);
 app.get('/api/team', teamController.get);
-app.post('/api/team', teamController.post);
 app.get('/api/heros', herosController.get);
-app.get('/api/update/heros', herosController.updateHeros);
+app.post('/api/update/heros', herosController.updateHeros);
 
 app.use(middleware);
 app.use(webpackHotMiddleware(compiler));

@@ -21,8 +21,8 @@ class Home extends React.Component {
   }
 
   getCustomersList() {
-    $.get('http://localhost:1337/api/customers', (data) => {
-        this.setState({customersList: data});
+    $.get('http://localhost:1337/api/heros', (data) => {
+        this.setState({customersList: data.results});
         console.log(data);
     });
   }
@@ -35,10 +35,13 @@ class Home extends React.Component {
       domifiedCustomers = customersList.map((customer, i) => {
         return (
           <li key={i}>
-            <h4>Name: {customer.name}</h4>
-            <h4>Email: {customer.email}</h4>
-            <h4>State: {customer.state}</h4>
-            <h4>Age: {customer.age}</h4>
+            <a href={customer.wikiUrl}>
+              <img src={customer.image} />
+              <h4>Name: {customer.heroName}</h4>
+              {customer.abilityImages.map((ability) => {
+                return <img src={ability} />
+              })}
+            </a>
           </li>
         );
       });

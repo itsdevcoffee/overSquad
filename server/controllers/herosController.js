@@ -1,5 +1,6 @@
 import mongo from 'mongodb';
 import assert from 'assert';
+import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
 
@@ -15,7 +16,7 @@ herosController.get = (req, res) => {
     mongo.connect(url, (err, db) => {
         // Make sure that there are no errors
         assert.equal(null, err, "There was an error connecting to the database.");
-        let cursor = db.collection('heros').find();
+        let cursor = db.collection('heros').find().sort({heroName: 1});
         cursor.forEach((hero) => {
             results.push(hero);
         }, () => {
@@ -29,17 +30,18 @@ herosController.get = (req, res) => {
 
 herosController.updateHeros = (req, res) => {
     overwatchScrape()
-        .then(() => {
-            const heros = fs.readFileSync(path.join(__dirname, './../lib/heros.json'));
-            const jsonHeros = JSON.parse(heros);
-
+        .then((finishedHeroArray) => {
             mongo.connect(url, (err, db) => {
                 assert.equal(null, err, "There was an error connecting to the database.");
+                console.log(chalk.white.bgCyan.bold('Removing previous hero data...'));
                 db.collection('heros').remove({});
-                db.collection('heros').insert(jsonHeros);
+                console.log(chalk.bgGreen.white.bold('Saving new hero data...'));
+                finishedHeroArray.forEach((hero) => {
+                    db.collection('heros').insert(hero);
+                })
                 db.close();
-            })
-            res.json(jsonHeros);
+            });
+            res.json(finishedHeroArray);
         }).catch(() => {
             res.status(400).send('There was an error updating the hero list');
         });

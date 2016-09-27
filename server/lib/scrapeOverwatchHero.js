@@ -13,10 +13,9 @@ let hasEmptyAbilities = false;
 let scrapeOverwatchHero = (herosArray) => {
 	return new Promise((resolve, reject) => {
 		// Reset finishedHeroArray
-		finishedHeroArray = [];
+		finishedHeroArray.length = 0;
 		hasEmptyAbilities = false;
 
-		
 		//herosArray = herosArray.slice(1, 2); // Uncomment for testing purposes
 
 		// Loop through all heros and get abilities
@@ -319,6 +318,7 @@ let scrapeOverwatchHero = (herosArray) => {
 						hasEmptyAbilities = true;
 						console.log(chalk.bgRed.white.bold(`${hero.heroName} is empty`));
 						console.log(chalk.bgBlue.white.bold('Some hero abilities or skins were empty. Retrying...'));
+						finishedHeroArray.length = 0;
 						reject();
 					}
 

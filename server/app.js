@@ -30,8 +30,12 @@ const app = express();
 app.use(bodyParser.json());
 
 // Api Calls
+
 app.get('/api/team', teamController.get);
-app.get('/api/heros', herosController.get);
+
+// Heros API
+app.get('/api/heros', herosController.getAll);
+app.get('/api/herosList', herosController.getHerosList);
 app.post('/api/update/heros', herosController.updateHeros);
 
 app.use(middleware);

@@ -1,5 +1,7 @@
 import React from 'react';
 
+import './../../styles/styles.scss';
+
 class Layout extends React.Component {
   render() {
     const content = this.props.children;

@@ -24,18 +24,21 @@ module.exports = {
         new webpack.NoErrorsPlugin()
     ],
     module: {
-        loaders: [{
-            test: /\.jsx?$/,
-            exclude: /node_modules/,
-            loader: 'babel',
-            query: {
-                'presets': ['react', 'es2015']
+        loaders: [
+            {
+                test: /\.jsx?$/,
+                exclude: /node_modules/,
+                loader: 'babel',
+                query: {
+                    'presets': ['react', 'es2015']
+                }
+            }, 
+            {
+                test: /\.scss$/,
+                loaders: ['style', 'css', 'sass'],
+                include: path.join(__dirname, 'client'),
+                exclude: /node_modules/
             }
-        }, {
-            test:/\.s?css$/,
-            loaders: ['style', 'css', 'sass'],
-            include: path.join(__dirname, 'client'),
-            exclude: /node_modules/
-        }]
+        ]
     }
 };

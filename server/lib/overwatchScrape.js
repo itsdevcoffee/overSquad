@@ -11,6 +11,7 @@ let url = 'http://overwatch.gamepedia.com/Overwatch_Wiki';
 let overwatchClass;
 
 import scrapeOverwatchHero from './scrapeOverwatchHero.js';
+import assignClassImgColor from './assignClassImgColor.js';
 
 let overwatchScrape = () => {
 	// State purpose
@@ -35,8 +36,8 @@ let overwatchScrape = () => {
 					let wikiUrl = `${baseUrl}${aTagAttribs.href}`;
 					let heroName = aTagAttribs.title;
 					let heroObj = {
-						"image": imageUrl,
-						"wikiUrl": wikiUrl,
+						"image": imageUrl.split('?')[0],
+						"wikiUrl": wikiUrl.split('?')[0],
 						"heroName": heroName
 					};
 
@@ -47,14 +48,19 @@ let overwatchScrape = () => {
 							overwatchClass = overwatchDomVariable.attribs.title;
 						}
 					}
-					heroObj.class = overwatchClass;
+					heroObj.heroClass = overwatchClass;
+
+					// Get class img and color
+					const classImgColorObj = assignClassImgColor(overwatchClass);
+					heroObj.classColor = classImgColorObj.classColor;
+					heroObj.classImg = classImgColorObj.classImg;
 
 					herosArray.push(heroObj);
 				}
 			});
 
 			// Have to retry the method because sometimes abilities are just empty
-			retryPromise(scrapeOverwatchHero.bind(this, herosArray), { max_tries: 8 }).done((finishedHeroArray) => {
+			retryPromise(scrapeOverwatchHero.bind(this, herosArray), { max_tries: 32 }).done((finishedHeroArray) => {
 				const createHeroJson = (finishedHeroArray) => {
 					fs.writeFile(path.join(__dirname + `/archive/heros${Date.now()}.json`), JSON.stringify(finishedHeroArray), (err) => {
 						if(err) {

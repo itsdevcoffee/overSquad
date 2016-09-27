@@ -10,13 +10,40 @@ const url = 'mongodb://localhost:27017/oversquad';
 
 const herosController = {};
 
-herosController.get = (req, res) => {
+herosController.getAll = (req, res) => {
     let results = [];
 
     mongo.connect(url, (err, db) => {
         // Make sure that there are no errors
         assert.equal(null, err, "There was an error connecting to the database.");
         let cursor = db.collection('heros').find().sort({heroName: 1});
+        cursor.forEach((hero) => {
+            results.push(hero);
+        }, () => {
+            db.close();
+            res.json({
+                results
+            });
+        });
+    });
+};
+
+herosController.getHerosList = (req, res) => {
+    let results = [];
+
+    mongo.connect(url, (err, db) => {
+        // Make sure that there are no errors
+        assert.equal(null, err, "There was an error connecting to the database.");
+
+        let selectFields = {
+            heroName: 1,
+            heroClass: 1,
+            image: 1,
+            classColor: 1,
+            classImg: 1
+        };
+
+        let cursor = db.collection('heros').find({}, selectFields);
         cursor.forEach((hero) => {
             results.push(hero);
         }, () => {

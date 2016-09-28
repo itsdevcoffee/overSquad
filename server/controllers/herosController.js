@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 
 import overwatchScrape from './../lib/overwatchScrape.js';
+import scrapeOverWatchHeros from './../lib/scrapeOverWatchHeros.js';
 
 const url = 'mongodb://localhost:27017/oversquad';
 
@@ -38,7 +39,7 @@ herosController.getHerosList = (req, res) => {
         let selectFields = {
             heroName: 1,
             heroClass: 1,
-            image: 1,
+            heroImg: 1,
             classColor: 1,
             classImg: 1
         };
@@ -55,8 +56,34 @@ herosController.getHerosList = (req, res) => {
     });
 };
 
+herosController.getHero = (req, res) => {
+    const { heroName } = req.params;
+
+    mongo.connect(url, (err, db) => {
+        // Make sure that there are no errors
+        assert.equal(null, err, "There was an error connecting to the database.");
+
+        let selectFields = {
+            heroName: 1,
+            heroClass: 1,
+            heroImg: 1,
+            classColor: 1,
+            classImg: 1,
+            fullHeroImage: 1,
+            abilities: 1
+        };
+
+        db.collection('heros').find({ heroName }, selectFields).toArray((err, result) => {
+            res.json({
+                results: result[0]
+            });
+        });
+        db.close();
+    });
+};
+
 herosController.updateHeros = (req, res) => {
-    overwatchScrape()
+    scrapeOverWatchHeros()
         .then((finishedHeroArray) => {
             mongo.connect(url, (err, db) => {
                 assert.equal(null, err, "There was an error connecting to the database.");

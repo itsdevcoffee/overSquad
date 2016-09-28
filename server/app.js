@@ -35,6 +35,7 @@ app.get('/api/team', teamController.get);
 
 // Heros API
 app.get('/api/heros', herosController.getAll);
+app.get('/api/heros/:heroName', herosController.getHero)
 app.get('/api/herosList', herosController.getHerosList);
 app.post('/api/update/heros', herosController.updateHeros);
 
